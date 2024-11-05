@@ -10,34 +10,40 @@ import webbrowser
 
 def gerar_df_phoenix(vw_name, base_luck):
 
+    data_hoje = datetime.now()
+
+    data_hoje_str = data_hoje.strftime("%Y-%m-%d")
+
+    # Parametros de Login AWS
     config = {
     'user': 'user_automation_jpa',
     'password': 'luck_jpa_2024',
     'host': 'comeia.cixat7j68g0n.us-east-1.rds.amazonaws.com',
     'database': base_luck
     }
-
+    # Conexão as Views
     conexao = mysql.connector.connect(**config)
     cursor = conexao.cursor()
 
-    request_name = f'SELECT * FROM {vw_name}'
+    request_name = f'SELECT * FROM {vw_name} WHERE {vw_name}.`Data Execucao`>={data_hoje_str}'
 
+    # Script MySql para requests
     cursor.execute(
         request_name
     )
-
+    # Coloca o request em uma variavel
     resultado = cursor.fetchall()
-
+    # Busca apenas o cabecalhos do Banco
     cabecalho = [desc[0] for desc in cursor.description]
 
+    # Fecha a conexão
     cursor.close()
     conexao.close()
 
+    # Coloca em um dataframe e muda o tipo de decimal para float
     df = pd.DataFrame(resultado, columns=cabecalho)
     df = df.applymap(lambda x: float(x) if isinstance(x, decimal.Decimal) else x)
-
     return df
-
 def puxar_sequencias_hoteis():
 
     nome_credencial = st.secrets["CREDENCIAL_SHEETS"]
