@@ -3257,7 +3257,7 @@ if roteirizar:
 
         df_router_filtrado_2 = criar_df_servicos_2(df_router_filtrado, df_hoteis_ref)
 
-        roteiro=0
+        roteiro=1
 
         lista_colunas = ['index']
 
