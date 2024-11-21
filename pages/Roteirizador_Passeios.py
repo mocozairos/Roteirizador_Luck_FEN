@@ -171,7 +171,7 @@ def objetos_parametros(row, servico_roteiro):
 
             horario_passeio = st.time_input('Horário Padrão de Passeio', time(8,0), 'horario_passeio')
 
-            max_hoteis = st.number_input('Máximo de Hoteis por Carro', step=1, value=8, key='max_hoteis')
+            max_hoteis = st.number_input('Máximo de Hoteis por Carro', step=1, value=20, key='max_hoteis')
 
             pax_cinco_min = st.number_input('Paxs Extras', step=1, value=18, key='pax_cinco_min', help='Número de paxs para aumentar intervalo entre hoteis em 5 minutos')
 
@@ -349,13 +349,15 @@ def definir_intervalo_ref(df, value):
 
         return transformar_timedelta(st.session_state.intervalo_hoteis_bairros_diferentes)
 
-def roteirizar_privativos(roteiro, df_servicos, index):
+def roteirizar_privativos(roteiro, df_servicos, index, carros):
+
+    carros+=1
 
     df_servicos.at[index, 'Data Horario Apresentacao'] = definir_horario_primeiro_hotel()
     
     df_servicos.at[index, 'Roteiro'] = roteiro
     
-    df_servicos.at[index, 'Carros'] = 1
+    df_servicos.at[index, 'Carros'] = carros
 
     return roteiro, df_servicos
 
@@ -389,6 +391,12 @@ def abrir_novo_carro(carros, roteiro, df_servicos, value, index, paxs_hotel):
 
 def gerar_horarios_apresentacao(df_servicos, roteiro, max_hoteis):
 
+    carros = 0
+
+    paxs_total_roteiro = 0
+
+    contador_hoteis = 0
+
     for index in range(len(df_servicos)):
 
         if df_servicos.at[index, 'Modo do Servico']=='PRIVATIVO POR VEICULO' or df_servicos.at[index, 'Modo do Servico']=='PRIVATIVO POR PESSOA' or df_servicos.at[index, 'Modo do Servico']=='CADEIRANTE':
@@ -397,15 +405,11 @@ def gerar_horarios_apresentacao(df_servicos, roteiro, max_hoteis):
 
         elif df_servicos.at[index, 'Modo do Servico']=='REGULAR':
 
-            carros = 1
-
-            paxs_total_roteiro = 0
-
-            contador_hoteis = 0
-
             bairro = ''
 
             if index==0:
+
+                carros+=1
 
                 df_servicos.at[index, 'Data Horario Apresentacao'] = definir_horario_primeiro_hotel()
                 
@@ -444,7 +448,7 @@ def gerar_horarios_apresentacao(df_servicos, roteiro, max_hoteis):
 
                     paxs_hotel = df_servicos[df_servicos['Est Origem']==df_servicos.at[index, 'Est Origem']]['Total ADT | CHD'].sum()
 
-                if contador_hoteis>max_hoteis:
+                if contador_hoteis>=max_hoteis:
 
                     carros, roteiro, df_servicos, data_horario_primeiro_hotel, bairro, paxs_total_roteiro = abrir_novo_carro(carros, roteiro, df_servicos, index, index, paxs_hotel)
                     
@@ -1597,7 +1601,7 @@ def identificar_apoios_em_df_4(df_servicos, pax_max_utilitario, pax_max_van, pax
 
         df_ref_4 = pd.merge(df_ref_4, df_ref_4_group_hoteis[['Est Origem', 'Sequência_2']], on = ['Est Origem'], how='left')
 
-        df_ref_4 = df_ref_4.sort_values(by=['Apoios', 'Sequência_2'], ascending=[False, True]).reset_index()
+        df_ref_4 = df_ref_4.sort_values(by=['Apoios', 'Sequência_2'], ascending=[False, True]).reset_index(drop=True)
 
         for veiculo in df_ref_4['Carros'].unique().tolist():
 
@@ -3282,7 +3286,7 @@ if roteirizar:
 
     df_roteiros_alternativos = roteirizar_pos_apoios(df_roteiros_apoios_alternativos, df_roteiros_alternativos)
 
-    max_hoteis_2 = 10
+    max_hoteis_2 = 20
 
     intervalo_pu_hotel_2 = pd.Timedelta(minutes=45)
 
@@ -3393,8 +3397,7 @@ if roteirizar:
     verificar_rotas_alternativas_ou_plotar_roteiros_com_apoio(df_roteiros_alternativos, row_warning, row3, coluna, df_hoteis_pax_max, df_router_filtrado_2, df_roteiros_apoios, 
                                                     df_roteiros_apoios_alternativos, st.session_state.nome_html)
 
-if 'nome_html' in st.session_state and (len(st.session_state.df_roteiros_alternativos)>0 or len(st.session_state.df_roteiros_alternativos_2)>0 or len(st.session_state.df_roteiros_alternativos_3)>0 or \
-        len(st.session_state.df_roteiros_alternativos_4)>0 or len(st.session_state.df_roteiros_alternativos_5)>0):
+if 'nome_html' in st.session_state and len(st.session_state.df_roteiros_alternativos)>0:
 
     st.divider()
 
@@ -3436,7 +3439,7 @@ if 'nome_html' in st.session_state and (len(st.session_state.df_roteiros_alterna
 
             st.markdown('*Rotas Alternativas 5 são rotas que tentam colocar menos carros, lotando os carros ao máximo e importando-se apenas com a quantidade máxima de 10 hoteis.*')
 
-            rotas_alternativas_5 = st.multiselect('Selecione as Rotas Alternativas 4 que serão usadas', lista_rotas_alternativas_5)
+            rotas_alternativas_5 = st.multiselect('Selecione as Rotas Alternativas 5 que serão usadas', lista_rotas_alternativas_5)
         
             gerar_roteiro_final = st.button('Gerar Roteiro Final')
 
