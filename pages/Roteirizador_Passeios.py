@@ -3161,6 +3161,8 @@ st.title('Roteirizador de Passeios - Noronha')
 
 st.divider()
 
+st.session_state.df_user
+
 if not 'df_router' in st.session_state:
 
     puxar_dados_phoenix()
