@@ -262,7 +262,7 @@ def roteirizar_hoteis_mais_pax_max(df_servicos, roteiro, df_hoteis_pax_max):
 
             df_hoteis_pax_max.at[len(df_hoteis_pax_max)-1, 'Carros']=carro
 
-    df_ref_sem_juncao = df_servicos[(df_servicos['Bus']=='X')].groupby(['Modo do Servico', 'Servico', 'Voo', 'Est Origem']).agg({'Total ADT | CHD': 'sum'}).reset_index()
+    df_ref_sem_juncao = df_servicos[(df_servicos['Bus']=='X')].groupby(['Modo do Servico', 'Servico', 'Est Origem']).agg({'Total ADT | CHD': 'sum'}).reset_index()
 
     df_ref_sem_juncao = df_ref_sem_juncao[df_ref_sem_juncao['Total ADT | CHD']>=st.session_state.pax_max].reset_index()
 
