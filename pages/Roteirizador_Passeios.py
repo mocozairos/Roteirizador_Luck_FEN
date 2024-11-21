@@ -3133,7 +3133,7 @@ def atualizar_banco_dados(df_exportacao, base_luck):
         try:
             # Adicionar registro de edição na tabela de auditoria
             query = "INSERT INTO changelogs (relatedObjectType, relatedObjectId, parentId, data, createdAt, type, userId, module, hostname) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, null)"
-            cursor.execute(query, ('ReserveService', id_servico, id_reserva, data, current_timestamp, 'update', st.session_state.df_user, 'router'))
+            cursor.execute(query, ('ReserveService', id_servico, id_reserva, data, current_timestamp, 'update', str(st.session_state.df_user['id'].iloc[0]), 'router'))
             conexao.commit()
             df_exportacao.at[idx, 'Status Auditoria'] = 'Atualizado com sucesso'
         except Exception as e:
@@ -3160,8 +3160,6 @@ st.set_page_config(layout='wide')
 st.title('Roteirizador de Passeios - Noronha')
 
 st.divider()
-
-st.session_state.df_user
 
 if not 'df_router' in st.session_state:
 
