@@ -3129,7 +3129,7 @@ def atualizar_banco_dados(df_exportacao, base_luck):
         try:
             # Adicionar registro de edição na tabela de auditoria
             query = "INSERT INTO changelogs (relatedObjectType, relatedObjectId, parentId, data, createdAt, type, userId, module, hostname) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, null)"
-            cursor.execute(query, ('ReserveService', id_servico, id_reserva, data, current_timestamp, 'update', st.query_params["userId"], 'router'))
+            cursor.execute(query, ('ReserveService', id_servico, id_reserva, data, current_timestamp, 'update', st.session_state.df_user, 'router'))
             conexao.commit()
             df_exportacao.at[idx, 'Status Auditoria'] = 'Atualizado com sucesso'
         except Exception as e:
@@ -3151,54 +3151,11 @@ def atualizar_banco_dados(df_exportacao, base_luck):
     
     return df_exportacao
 
-def getUser(userId):
-
-    config = {
-    'user': 'user_automation',
-    'password': 'auto_luck_2024',
-    'host': 'comeia.cixat7j68g0n.us-east-1.rds.amazonaws.com',
-    'database': 'test_phoenix_general'
-    }
-
-    conexao = mysql.connector.connect(**config)
-    cursor = conexao.cursor()
-
-    request_name = f'SELECT * FROM user WHERE ID = {userId}'
-
-    # Script MySQL para requests
-    cursor.execute(request_name)
-    # Coloca o request em uma variavel
-    resultado = cursor.fetchall()
-    # Busca apenas os cabeçalhos do Banco
-    cabecalho = [desc[0] for desc in cursor.description]
-
-    # Fecha a conexão
-    cursor.close()
-    conexao.close()
-
-    # Coloca em um dataframe e converte decimal para float
-    df = pd.DataFrame(resultado, columns=cabecalho)
-    df = df.applymap(lambda x: float(x) if isinstance(x, decimal.Decimal) else x)
-    return df
-
 st.set_page_config(layout='wide')
 
 st.title('Roteirizador de Passeios - Noronha')
 
 st.divider()
-
-if not st.query_params or not st.query_params["userId"]:
-
-    st.error("Usuário não autenticado")
-
-    st.stop()
-
-# Carrega os dados da tabela 'user`
-
-if not 'df_user' in st.session_state:
-    
-    st.session_state.df_user = getUser(st.query_params["userId"])
-
 
 if not 'df_router' in st.session_state:
 
