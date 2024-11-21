@@ -2012,17 +2012,17 @@ def identificar_apoios_em_df_4(df_servicos, pax_max_utilitario, pax_max_van, pax
 
     for n_roteiro in df_servicos['Roteiro'].unique().tolist():
 
-        df_ref_4 = df_servicos[(df_servicos['Roteiro']==n_roteiro)].sort_values(by=['Apoios', 'Sequência'], ascending=[False, True])\
-            .reset_index()
-        
+        df_ref_4 = df_servicos[(df_servicos['Roteiro']==n_roteiro)].sort_values(by=['Apoios', 'Sequência'], ascending=[False, True]).reset_index()
+
         df_ref_4_group_hoteis = df_ref_4.groupby('Est Origem').agg({'Total ADT | CHD': 'sum', 'Apoios': 'first'}).reset_index()
 
-        df_ref_4_group_hoteis = df_ref_4_group_hoteis[(df_ref_4_group_hoteis['Total ADT | CHD']<=4) | 
-                                                      (df_ref_4_group_hoteis['Apoios']!='')].reset_index(drop=True)
-        
-        lista_hoteis_apoio_4 = df_ref_4_group_hoteis['Est Origem'].unique().tolist()
-        
-        df_ref_4 = df_ref_4[df_ref_4['Est Origem'].isin(lista_hoteis_apoio_4)].reset_index(drop=True)
+        df_ref_4_group_hoteis = df_ref_4_group_hoteis.sort_values(by='Total ADT | CHD').reset_index(drop=True)
+
+        df_ref_4_group_hoteis['Sequência_2'] = range(1, len(df_ref_4_group_hoteis)+1)
+
+        df_ref_4 = pd.merge(df_ref_4, df_ref_4_group_hoteis[['Est Origem', 'Sequência_2']], on = ['Est Origem'], how='left')
+
+        df_ref_4 = df_ref_4.sort_values(by=['Apoios', 'Sequência_2'], ascending=[False, True]).reset_index(drop=True)
 
         for veiculo in df_ref_4['Carros'].unique().tolist():
 
@@ -2030,105 +2030,110 @@ def identificar_apoios_em_df_4(df_servicos, pax_max_utilitario, pax_max_van, pax
 
             df_ref_5 = df_ref_4[df_ref_4['Carros']==veiculo].reset_index()
 
-            max_hoteis = len(df_ref_4['Est Origem'].unique().tolist()) // 2
+            if len(df_ref_5['Est Origem'].unique().tolist())>1:
 
-            df_ref_5_contagem_hoteis_apoios = df_ref_5[df_ref_5['Apoios']!=''].groupby('Est Origem')['Hoteis Juntos p/ Apoios'].first().reset_index()
+                max_hoteis = len(df_ref_5['Est Origem'].unique().tolist()) // 2
 
-            hoteis_total_apoio=0
+                df_ref_5_contagem_hoteis_apoios = df_ref_5[df_ref_5['Apoios']!=''].groupby('Est Origem')['Hoteis Juntos p/ Apoios'].first().reset_index()
 
-            for index in range(len(df_ref_5_contagem_hoteis_apoios)):
+                hoteis_total_apoio=0
 
-                if index==0:
+                for index in range(len(df_ref_5_contagem_hoteis_apoios)):
 
-                    hoteis_total_apoio+=1
-
-                elif not ((df_ref_5_contagem_hoteis_apoios.at[index, 'Hoteis Juntos p/ Apoios']==
-                          df_ref_5_contagem_hoteis_apoios.at[index-1, 'Hoteis Juntos p/ Apoios']) and 
-                          (~pd.isna(df_ref_5_contagem_hoteis_apoios.at[index, 'Hoteis Juntos p/ Apoios']))):
-
-                    hoteis_total_apoio+=1
-
-            if 'X' in df_ref_5['Apoios'].values:
-
-                paxs_total_apoio = df_ref_5[df_ref_5['Apoios']=='X']['Total ADT | CHD'].sum()
-
-            else:
-
-                paxs_total_apoio = 0
-
-            for index in range(len(df_ref_5)):
-
-                hotel = df_ref_5.at[index, 'Est Origem']
-
-                if not pd.isna(df_ref_5.at[index, 'Hoteis Juntos p/ Apoios']):
-                                    
-                    paxs_hotel = df_ref_5[df_ref_5['Hoteis Juntos p/ Apoios']==df_ref_5.at[index, 'Hoteis Juntos p/ Apoios']]['Total ADT | CHD'].sum()
-                    
-                else:
-
-                    paxs_hotel = df_ref_5[df_ref_5['Est Origem']==df_ref_5.at[index, 'Est Origem']]['Total ADT | CHD'].sum()
-
-                if index==0:
-
-                    if df_ref_5.at[index, 'Apoios']=='':
+                    if index==0:
 
                         hoteis_total_apoio+=1
 
-                        if paxs_total_apoio+paxs_hotel<=15:
+                    elif not ((df_ref_5_contagem_hoteis_apoios.at[index, 'Hoteis Juntos p/ Apoios']==
+                            df_ref_5_contagem_hoteis_apoios.at[index-1, 'Hoteis Juntos p/ Apoios']) and 
+                            (~pd.isna(df_ref_5_contagem_hoteis_apoios.at[index, 'Hoteis Juntos p/ Apoios']))):
 
-                            paxs_total_apoio+=paxs_hotel
+                        hoteis_total_apoio+=1
 
-                            df_servicos.loc[(df_servicos['Est Origem']==hotel) & (df_servicos['Roteiro']==n_roteiro) & 
-                                            (df_servicos['Carros']==veiculo), 'Apoios']='X'
+                if 'X' in df_ref_5['Apoios'].values:
 
-                        else:
-
-                            sem_roteiro = 1
-
-                            break
-
-                elif df_ref_5.at[index, 'Est Origem']==df_ref_5.at[index-1, 'Est Origem']:
-
-                    df_servicos.loc[(df_servicos['Est Origem']==hotel) & (df_servicos['Roteiro']==n_roteiro) & 
-                                            (df_servicos['Carros']==veiculo), 'Apoios']='X'
+                    paxs_total_apoio = df_ref_5[df_ref_5['Apoios']=='X']['Total ADT | CHD'].sum()
 
                 else:
 
-                    
-                    if df_ref_5.at[index, 'Apoios']=='':
+                    paxs_total_apoio = 0
 
-                        if not ((df_ref_5.at[index, 'Hoteis Juntos p/ Apoios']==df_ref_5.at[index-1, 'Hoteis Juntos p/ Apoios']) and 
-                                 (~pd.isna(df_ref_5.at[index, 'Hoteis Juntos p/ Apoios']))):
+                for index in range(len(df_ref_5)):
 
-                            verificador_n_hoteis = hoteis_total_apoio+1
+                    hotel = df_ref_5.at[index, 'Est Origem']
 
-                        else:
+                    if not pd.isna(df_ref_5.at[index, 'Hoteis Juntos p/ Apoios']):
+                                        
+                        paxs_hotel = df_ref_5[df_ref_5['Hoteis Juntos p/ Apoios']==df_ref_5.at[index, 'Hoteis Juntos p/ Apoios']]\
+                            ['Total ADT | CHD'].sum()
+                        
+                    else:
 
-                            verificador_n_hoteis = hoteis_total_apoio
+                        paxs_hotel = df_ref_5[df_ref_5['Est Origem']==df_ref_5.at[index, 'Est Origem']]['Total ADT | CHD'].sum()
 
-                        if verificador_n_hoteis<=max_hoteis and paxs_total_apoio+paxs_hotel<=15:
+                    if index==0:
+
+                        if df_ref_5.at[index, 'Apoios']=='':
+
+                            hoteis_total_apoio+=1
+
+                            if paxs_total_apoio+paxs_hotel<=pax_max_van:
+
+                                paxs_total_apoio+=paxs_hotel
+
+                                df_servicos.loc[(df_servicos['Est Origem']==hotel) & (df_servicos['Roteiro']==n_roteiro) & 
+                                                (df_servicos['Carros']==veiculo), 'Apoios']='X'
+
+                            else:
+
+                                sem_roteiro = 1
+
+                                break
+
+                    elif df_ref_5.at[index, 'Est Origem']==df_ref_5.at[index-1, 'Est Origem']:
+
+                        df_servicos.loc[(df_servicos['Est Origem']==hotel) & (df_servicos['Roteiro']==n_roteiro) & 
+                                                (df_servicos['Carros']==veiculo), 'Apoios']='X'
+
+                    else:
+
+                        
+                        if df_ref_5.at[index, 'Apoios']=='':
 
                             if not ((df_ref_5.at[index, 'Hoteis Juntos p/ Apoios']==df_ref_5.at[index-1, 'Hoteis Juntos p/ Apoios']) and 
                                     (~pd.isna(df_ref_5.at[index, 'Hoteis Juntos p/ Apoios']))):
 
-                                hoteis_total_apoio+=1
+                                verificador_n_hoteis = hoteis_total_apoio+1
 
-                            paxs_total_apoio+=paxs_hotel
+                            else:
 
-                            df_servicos.loc[(df_servicos['Est Origem']==hotel) & (df_servicos['Roteiro']==n_roteiro) & 
-                                            (df_servicos['Carros']==veiculo), 'Apoios']='X'
+                                verificador_n_hoteis = hoteis_total_apoio
 
-                        else:
+                            if verificador_n_hoteis<=max_hoteis and paxs_total_apoio+paxs_hotel<=pax_max_van:
 
-                            break
+                                if not ((df_ref_5.at[index, 'Hoteis Juntos p/ Apoios']==df_ref_5.at[index-1, 'Hoteis Juntos p/ Apoios']) and 
+                                        (~pd.isna(df_ref_5.at[index, 'Hoteis Juntos p/ Apoios']))):
 
-            if sem_roteiro==1:
+                                    hoteis_total_apoio+=1
 
-                break
+                                paxs_total_apoio+=paxs_hotel
+
+                                df_servicos.loc[(df_servicos['Est Origem']==hotel) & (df_servicos['Roteiro']==n_roteiro) & 
+                                                (df_servicos['Carros']==veiculo), 'Apoios']='X'
+
+                            else:
+
+                                break
+
+                if sem_roteiro==1:
+
+                    break
 
         if sem_roteiro==1:
 
             df_servicos = df_servicos[df_servicos['Roteiro']!=n_roteiro].reset_index(drop=True)
+
+    df_servicos.loc[df_servicos['Região']=='CAMURUPIM', 'Apoios']='Y'
 
     return df_servicos
 
@@ -4865,7 +4870,7 @@ if roteirizar:
 
     # Gerando rotas de apoios de rotas alternativas 5
 
-    df_roteiros_alternativos_5 = identificar_apoios_em_df_4(df_roteiros_alternativos_5, pax_max_utilitario, pax_max_van, pax_max_micro)
+    df_roteiros_alternativos_5 = identificar_apoios_em_df(df_roteiros_alternativos_5, pax_max_utilitario, pax_max_van, pax_max_micro)
 
     # Gerando rotas de apoios de rotas alternativas 5
 
