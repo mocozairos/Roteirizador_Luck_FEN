@@ -222,7 +222,7 @@ def definir_horario_primeiro_hotel():
 
     data_base = datetime.combine(st.session_state.data_roteiro, horario_passeio)
 
-    return data_base - transformar_timedelta(st.session_state.intervalo_inicial)
+    return data_base
 
 def roteirizar_hoteis_mais_pax_max(df_servicos, roteiro, df_hoteis_pax_max):
 
