@@ -161,7 +161,7 @@ def objetos_parametros(row, servico_roteiro):
 
         with row[0]:
 
-            intervalo_inicial = objeto_intervalo('Antecipação Último Hotel', time(0, 0), 'intervalo_inicial')
+            intervalo_inicial = transformar_timedelta(time(0, 0))
 
             intervalo_hoteis_bairros_iguais = objeto_intervalo('Intervalo Hoteis | Bairros Iguais', time(0, 2), 'intervalo_hoteis_bairros_iguais')
 
