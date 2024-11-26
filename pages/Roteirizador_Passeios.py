@@ -165,7 +165,7 @@ def objetos_parametros(row, servico_roteiro):
 
     with row[1]:
 
-        horario_passeio = st.time_input('Horário Padrão de Passeio', time(8,0), 'horario_passeio')
+        horario_passeio = st.time_input('Horário Padrão de Último Hotel', time(8,0), 'horario_passeio')
 
         max_hoteis = st.number_input('Máximo de Hoteis por Carro', step=1, value=20, key='max_hoteis')
 
