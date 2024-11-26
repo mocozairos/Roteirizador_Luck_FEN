@@ -157,27 +157,25 @@ def objeto_intervalo(titulo, valor_padrao, chave):
 
 def objetos_parametros(row, servico_roteiro):
 
-    if servico_roteiro=='PASSEIO DE BARCO':
+    with row[0]:
 
-        with row[0]:
+        intervalo_hoteis_bairros_iguais = objeto_intervalo('Intervalo Hoteis | Bairros Iguais', time(0, 2), 'intervalo_hoteis_bairros_iguais')
 
-            intervalo_hoteis_bairros_iguais = objeto_intervalo('Intervalo Hoteis | Bairros Iguais', time(0, 2), 'intervalo_hoteis_bairros_iguais')
+        intervalo_hoteis_bairros_diferentes = objeto_intervalo('Intervalo Hoteis | Bairros Diferentes', time(0, 5), 'intervalo_hoteis_bairros_diferentes')
 
-            intervalo_hoteis_bairros_diferentes = objeto_intervalo('Intervalo Hoteis | Bairros Diferentes', time(0, 5), 'intervalo_hoteis_bairros_diferentes')
+    with row[1]:
 
-        with row[1]:
+        horario_passeio = st.time_input('Horário Padrão de Passeio', time(8,0), 'horario_passeio')
 
-            horario_passeio = st.time_input('Horário Padrão de Passeio', time(8,0), 'horario_passeio')
+        max_hoteis = st.number_input('Máximo de Hoteis por Carro', step=1, value=20, key='max_hoteis')
 
-            max_hoteis = st.number_input('Máximo de Hoteis por Carro', step=1, value=20, key='max_hoteis')
+        pax_cinco_min = st.number_input('Paxs Extras', step=1, value=18, key='pax_cinco_min', help='Número de paxs para aumentar intervalo entre hoteis em 5 minutos')
 
-            pax_cinco_min = st.number_input('Paxs Extras', step=1, value=18, key='pax_cinco_min', help='Número de paxs para aumentar intervalo entre hoteis em 5 minutos')
+    with row[2]:
 
-        with row[2]:
+        intervalo_pu_hotel = objeto_intervalo('Intervalo Hoteis | Primeiro vs Último', time(0, 30), 'intervalo_pu_hotel')
 
-            intervalo_pu_hotel = objeto_intervalo('Intervalo Hoteis | Primeiro vs Último', time(0, 30), 'intervalo_pu_hotel')
-
-            pax_max = st.number_input('Máximo de Paxs por Carro', step=1, value=27, key='pax_max')
+        pax_max = st.number_input('Máximo de Paxs por Carro', step=1, value=27, key='pax_max')
 
 def verificar_cadeirante(observacao):
 
