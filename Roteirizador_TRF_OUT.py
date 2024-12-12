@@ -4461,11 +4461,7 @@ with row2[0]:
 
         roteirizar = st.button('Roteirizar')
 
-    with row_container[1]:
-
-        visualizar_voos = st.button('Visualizar Voos')
-
-if visualizar_voos and servico_roteiro:
+if servico_roteiro:
 
     df_router_filtrado = st.session_state.df_router[(st.session_state.df_router['Data Execucao']==data_roteiro) & 
                                                     (st.session_state.df_router['Tipo de Servico']=='OUT') & 
